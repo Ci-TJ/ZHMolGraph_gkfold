@@ -38,4 +38,7 @@ Here we describe the Jupyter Notebooks scripts used in ZHMolGraph.
 
 # Contact
 
-For any questions, please contact authors.
+If you have any comments, questions or suggestions about the ZHMolRPGraph, please contact:
+
+Yunjie Zhao       E-mail: yjzhaowh@ccnu.edu.cn
+Haoquan Liu       E-mail: liuhaoquan@mails.ccnu.edu.cn
