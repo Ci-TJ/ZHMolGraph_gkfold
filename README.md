@@ -9,9 +9,9 @@ RNA-protein interactions are critical to various life processes, including funda
 
 - We provide the script and model for validating the results of ZHMolGraph. Any machines with a GPU and an Ubuntu system should work.
 
-We recommend using Anaconda to create a virtual environment for this project.
+- We recommend using Anaconda to create a virtual environment for this project.
 
-you will need a major software package: `pytorch`. The following commands will create a virtual environment and install the necessary packages. Note that we install the GPU version of PyTorch (`torch==1.8.1+cu11`) for training purpose.
+- you will need a major software package: `pytorch`. The following commands will create a virtual environment and install the necessary packages. Note that we install the GPU version of PyTorch (`torch==1.8.1+cu11`) for training purpose.
 
 ```bash
 conda create -n ZHMolRPGraphPytorch-1.8 python=3.8
