@@ -30,8 +30,12 @@ pip install jupyter
 # Code and Data
 
 ## Data Files
+ 
 
 ## Code 
 
 Here we describe the Jupyter Notebooks scripts used in ZHMolGraph.
 
+# Contact
+
+For any questions, please contact authors.
