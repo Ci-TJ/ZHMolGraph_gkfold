@@ -1,6 +1,6 @@
 # ZHMolGraph
 
-AI-Bind is a deep-learning  pipeline that provides interpretable binding predictions for never-before-seen proteins and ligands. AI-Bind is capable of rapid screening of large chemical libraries and guiding computationally expensive auto-docking simulations by prioritizing protein-ligand pairs for validation. The pipeline requires as input simple chemical features such as the amino-acid sequence of a protein and the isomeric SMILE of a ligand, which helps to overcome limitations associated with the lack of available 3D protein structures.
+RNA-protein interactions are critical to various life processes, including fundamental translation and gene regulation. Identifying these interactions is vital for understanding the mechanisms underlying life processes. Then, ZHMolRPGraph is an advanced pipeline that integrates graph neural network sampling strategy and unsupervised pre-trained large language models to enhance binding predictions for novel RNAs and proteins.
 
 
 # Setting up ZHMolGraph and Predicting RNA-protein Binding (Guidelines for end users) 
