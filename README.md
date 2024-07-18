@@ -22,9 +22,9 @@ pip install tensorboard
 pip install jupyter
 ```
 
-All Python modules and corresponding versions required for ZHMolGraph are listed here: requirements.txt
+- All Python modules and corresponding versions required for ZHMolGraph are listed here: requirements.txt
 
-Use pip install -r requirements.txt to install the related packages. 
+- Use pip install -r requirements.txt to install the related packages. 
 
 
 # Code and Data
