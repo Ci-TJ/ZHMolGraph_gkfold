@@ -31,8 +31,8 @@ pip install jupyter
 
 ## Data Files
 All data files are available here: https://zenodo.org/record/
--data/interactions/
--data/Mol2Vec/
+- data/interactions/
+- data/Mol2Vec/
 ## Code 
 
 Here we describe the Jupyter Notebooks scripts used in ZHMolGraph.
