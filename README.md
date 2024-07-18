@@ -3,8 +3,7 @@
 RNA-protein interactions are critical to various life processes, including fundamental translation and gene regulation. Identifying these interactions is vital for understanding the mechanisms underlying life processes. Then, ZHMolGraph is an advanced pipeline that integrates graph neural network sampling strategy and unsupervised pre-trained large language models to enhance binding predictions for novel RNAs and proteins.
 
 
-# Setting up ZHMolGraph and Predicting RNA-protein interactions (Guidelines for end users) 
-
+# Setting up ZHMolGraph and Predicting RNA-protein interactions
 
 ## Requirements
 
