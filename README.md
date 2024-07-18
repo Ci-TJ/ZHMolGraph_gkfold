@@ -43,16 +43,16 @@ Here we describe the Jupyter Notebooks scripts used in ZHMolGraph.
 
 #### Dataset NPInter2
 
-1_NPInter2_pretrain_train_on_RPI.ipynb: We execute a five-fold cross-validation on benchmark dataset NPInter2.
+1_NPInter2_result_validation.ipynb: We execute a five-fold cross-validation on benchmark dataset NPInter2.
 
 #### Dataset RPI7317
 
-1_RPI7317_pretrain_train_on_RPI.ipynb: We execute a five-fold cross-validation on benchmark dataset RPI7317.
+2_RPI7317_result_validation.ipynb: We execute a five-fold cross-validation on benchmark dataset RPI7317.
 
 
 ### Testing ZHMolRPGraph on the unseen nodes dataset NPInter5
 
-2_Test_unseen_nodes_dataset_NPInter5.ipynb: We conduct testing on the unseen nodes dataset NPInter5 using the trained models generated from the five-fold cross-validation on the benchmark dataset NPInter2.
+3_TheNovel_unknown_dataset_validation.ipynb: We conduct testing on the unseen nodes dataset NPInter5 using the trained models generated from the five-fold cross-validation on the benchmark dataset NPInter2.
 
 
 # Contact
