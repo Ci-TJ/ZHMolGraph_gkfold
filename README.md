@@ -31,8 +31,11 @@ pip install jupyter
 
 ## Data Files
 All data files are available here: https://zenodo.org/record/
-- data/interactions/
-- data/Mol2Vec/
+
+- data/interactions/: Contains RNA-protein interactions data.
+- data/Mol2Vec/: Contains the embeddings from LLMs.
+- trained_model/: Contains the trained model.
+
 ## Code 
 
 Here we describe the Jupyter Notebooks scripts used in ZHMolGraph.
