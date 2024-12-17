@@ -14,8 +14,8 @@ RNA-protein interactions are critical to various life processes, including funda
 - you will need a major software package: `pytorch`. The following commands will create a virtual environment and install the necessary packages. Note that we install the GPU version of PyTorch (`torch==1.8.1+cu11`) for training purpose.
 
 ```bash
-conda create -n ZHMolRPGraphPytorch-1.8 python=3.8
-conda activate ZHMolRPGraphPytorch-1.8
+conda create -n ZHMolGraphPytorch-1.8 python=3.8
+conda activate ZHMolGraphPytorch-1.8
 pip install tqdm
 pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 pip install tensorboard
@@ -50,10 +50,11 @@ Here we describe the Jupyter Notebooks scripts used in ZHMolGraph.
 2_RPI7317_result_validation.ipynb: We execute a five-fold cross-validation on benchmark dataset RPI7317.
 
 
-### Testing ZHMolRPGraph on the unseen nodes dataset NPInter5
-
+### Testing ZHMolRPGraph on the unknown nodes dataset TheNovel
 3_TheNovel_unknown_dataset_validation.ipynb: We conduct testing on the unseen nodes dataset NPInter5 using the trained models generated from the five-fold cross-validation on the benchmark dataset NPInter2.
 
+### Predict the binding probability between a pair of given RNA and protein sequence
+python predict_RPI.py -r example/RNA_seq.fasta -p example/protein_seq.fasta -j test -o example/Result
 
 # Contact
 
