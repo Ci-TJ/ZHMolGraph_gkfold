@@ -38,7 +38,6 @@ fonttools==4.44.3
 fqdn==1.5.1
 fsspec==2023.10.0
 gast==0.4.0
-gensim==4.3.2
 google-auth==2.23.4
 google-auth-oauthlib==1.0.0
 google-pasta==0.2.0
@@ -72,8 +71,6 @@ jupyterlab==4.0.9
 jupyterlab-pygments==0.2.2
 jupyterlab_server==2.25.2
 jupyterlab-widgets==3.0.9
-keras==2.13.1
-Keras-Preprocessing==1.1.2
 kiwisolver==1.4.5
 libclang==16.0.6
 littleutils==0.2.2
@@ -138,7 +135,6 @@ PyYAML==6.0.1
 pyzmq==25.1.1
 qtconsole==5.5.1
 QtPy==2.4.1
-rdkit==2023.9.1
 referencing==0.31.0
 regex==2023.10.3
 requests==2.31.0
@@ -162,9 +158,6 @@ stack-data==0.6.3
 tenacity==8.2.3
 tensorboard==2.13.0
 tensorboard-data-server==0.7.2
-tensorflow==2.13.1
-tensorflow-estimator==2.13.0
-tensorflow-io-gcs-filesystem==0.34.0
 termcolor==2.3.0
 terminado==0.18.0
 threadpoolctl==3.2.0
