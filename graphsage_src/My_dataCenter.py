@@ -13,7 +13,7 @@ class DataCenter(object):
 
     def load_unseen_dataSet(self, dataSet='NPInter5', adj_lists=None, node_map=None, feat_data=None):
         # print(self.config)
-        feat_file = dataSet + '_graphsage_dataset/' + dataSet + '_feats_' + '.txt'
+        feat_file = dataSet + '_graphsage_dataset/' + dataSet + '_feats' + '.txt'
         # print(feat_file)
         # feat_data = np.asarray(feat_data)
         # print(f'feat_data in dataCenter1:\n {feat_data}')
