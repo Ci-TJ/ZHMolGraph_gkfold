@@ -867,10 +867,11 @@ class ZHMolGraph():
         else:
             print("请输入正确的graphsage_embedding的参数!")
 
-    def get_unseen_graphsage_embeddings(self, config='./graphsage_src/experiments.conf', model_path=None, 
-                                        model_dataset=None, unseen_dataset=None, rna_vector_length=None, 
-                                        protein_vector_length=None,
-                                        rnas=None, proteins=None, embedding_type=None):
+    def get_unseen_graphsage_embeddings(self, config='./graphsage_src/experiments.conf',
+                                        model_path=None, model_dataset=None, unseen_dataset=None,
+                                        rna_vector_length=None, protein_vector_length=None,
+                                        rnas=None, proteins=None, embedding_type=None, 
+                                        test_interactions=None):
         '''
         获取未见过节点的网络上的embeddings
         '''
@@ -895,42 +896,10 @@ class ZHMolGraph():
         #
         # print(f"feat_data'\n'{feat_data.shape}")
 
-
-        ### 制作新测试集特征所需要的文件
-        unseen_dataset = unseen_dataset
-        unseen_dataset_path = 'data/interactions/' + unseen_dataset + '_interactions_seqpairs.csv'
-        unseen_interactions = pd.read_csv(unseen_dataset_path, sep=',')
-        # print(unseen_interactions)
-        total_interaction_df = pd.concat(
-            [unseen_interactions['RNA_aa_code'], unseen_interactions['target_aa_code']], axis=1)
-        # print(total_interaction_df)
-
-        ### 导入测试集预训练的嵌入 ###
-        # Read In rnas and proteins dataframes to pass to AIBind after changing column names
-        # with open('data/sars-busters/Mol2Vec/NPI_' + unseen_dataset + '_rnafm_embed_normal.pkl', 'rb') as file:
-        #     test_rnas = pkl.load(file)
-        #
-        # with open('data/sars-busters/Mol2Vec/NPI_' + unseen_dataset + '_proteinprottrans_embed_normal.pkl', 'rb') as file:
-        #     test_proteins = pkl.load(file)
-        #
-        # print(test_rnas)
-        # print(len(test_rnas))
-        # print(test_proteins)
-        # print(type(test_proteins))
+        output_feats_file = unseen_dataset + '_graphsage_dataset/' + unseen_dataset + '_feats' + '.txt'
 
         test_rnas = rnas
         test_proteins = proteins
-
-        ### 生成用于graphsage训练的四个文件, 包含所有相互作用：RPI2241_total_interactions_seq_list.txt；包含所有节点的特征：RPI2241_feats.txt；
-        # graphsage训练集中的所有相互作用：RPI2241_graphsage_train_interactions.txt; graphsage测试集中的所有相互作用：RPI2241_graphsage_test_interactions.txt
-
-        if not os.path.exists(unseen_dataset + '_graphsage_dataset/'):
-            # 如果不存在，创建文件夹
-            os.makedirs(unseen_dataset + '_graphsage_dataset/')
-
-
-        total_interaction_df.to_csv(unseen_dataset + '_graphsage_dataset/' + unseen_dataset + '_total_interactions_seq_list.txt',
-                                    sep='\t', index=False, header=False)
         # 将节点的embedding变成np矩阵
         rna_embeddings = test_rnas['normalized_embeddings']
         rna_array = np.zeros((len(test_rnas['normalized_embeddings']), rna_vector_length))
@@ -947,73 +916,111 @@ class ZHMolGraph():
         for i in range(len(test_proteins['normalized_embeddings'])):
             protein_array[i, :] = protein_embeddings.iloc[i]
 
-        # columns = ['nodes'] + [f'fea_{i}' for i in range(1, 1024 + 1)]
-        # RNA_feat = pd.DataFrame(columns=columns)
-        rnas_length = rna_vector_length
-        proteins_length =protein_vector_length
-        if rnas_length < proteins_length:
-            columns = ['nodes'] + [f'fea_{i}' for i in range(1, proteins_length + 1)]
-        elif rnas_length >= proteins_length:
-            columns = ['nodes'] + [f'fea_{i}' for i in range(1, rnas_length + 1)]
-        RNA_feat = pd.DataFrame(columns=columns)
 
-        # 打印结果
-        # print(RNA_feat)
+        if not os.path.exists(output_feats_file):
+            ### 制作新测试集特征所需要的文件
+            unseen_dataset = unseen_dataset
+            unseen_dataset_path = 'data/interactions/' + 'dataset_RPI_' + unseen_dataset + '_RP.csv'
+            if os.path.exists(unseen_dataset_path):
+                unseen_interactions = pd.read_csv(unseen_dataset_path, sep=',')
+            else:
+                unseen_interactions = test_interactions
 
-        for i in range(test_rnas.shape[0]):
-            RNA_data = []
-            rna_seq = test_rnas['RNA_aa_code'][i]
-            RNA_data.append(rna_seq)
+            # print(unseen_interactions)
+            total_interaction_df = pd.concat(
+                [unseen_interactions['RNA_aa_code'], unseen_interactions['target_aa_code']], axis=1)
+            # print(total_interaction_df)
 
-            rna_embedding = rna_array[i, :]
+            ### 导入测试集预训练的嵌入 ###
+            # Read In rnas and proteins dataframes to pass to AIBind after changing column names
+            # with open('data/sars-busters/Mol2Vec/NPI_' + unseen_dataset + '_rnafm_embed_normal.pkl', 'rb') as file:
+            #     test_rnas = pkl.load(file)
+            #
+            # with open('data/sars-busters/Mol2Vec/NPI_' + unseen_dataset + '_proteinprottrans_embed_normal.pkl', 'rb') as file:
+            #     test_proteins = pkl.load(file)
+            #
+            # print(test_rnas)
+            # print(len(test_rnas))
+            # print(test_proteins)
+            # print(type(test_proteins))
 
-            for i in range(len(rna_embedding)):
-                RNA_data.append(rna_embedding[i])
+            ### 生成用于graphsage训练的四个文件, 包含所有相互作用：RPI2241_total_interactions_seq_list.txt；包含所有节点的特征：RPI2241_feats.txt；
+            # graphsage训练集中的所有相互作用：RPI2241_graphsage_train_interactions.txt; graphsage测试集中的所有相互作用：RPI2241_graphsage_test_interactions.txt
 
+            if not os.path.exists(unseen_dataset + '_graphsage_dataset/'):
+                # 如果不存在，创建文件夹
+                os.makedirs(unseen_dataset + '_graphsage_dataset/')
+
+
+            total_interaction_df.to_csv(unseen_dataset + '_graphsage_dataset/' + unseen_dataset + '_total_interactions_seq_list' + '.txt',
+                                        sep='\t', index=False, header=False)
+
+            # columns = ['nodes'] + [f'fea_{i}' for i in range(1, 1024 + 1)]
+            # RNA_feat = pd.DataFrame(columns=columns)
+            rnas_length = rna_vector_length
+            proteins_length =protein_vector_length
             if rnas_length < proteins_length:
-                RNA_data = RNA_data + [0] * max(0, proteins_length + 1 - len(RNA_data))
-            # RNA_data = RNA_data + [0] * max(0, 1025 - len(RNA_data))
-            # print(RNA_data)
-            RNA_feat.loc[len(RNA_feat)] = RNA_data
-        # print(RNA_feat)
-        # print("load RNA_feat")
-        ### 制作 protein 的特征文件
-        # 创建一个空的 protein DataFrame
-        # columns = ['nodes'] + [f'fea_{i}' for i in range(1, 1024 + 1)]
-        if rnas_length < proteins_length:
-            columns = ['nodes'] + [f'fea_{i}' for i in range(1, proteins_length + 1)]
-        elif rnas_length >= proteins_length:
-            columns = ['nodes'] + [f'fea_{i}' for i in range(1, rnas_length + 1)]
-        protein_feat = pd.DataFrame(columns=columns)
+                columns = ['nodes'] + [f'fea_{i}' for i in range(1, proteins_length + 1)]
+            elif rnas_length >= proteins_length:
+                columns = ['nodes'] + [f'fea_{i}' for i in range(1, rnas_length + 1)]
+            RNA_feat = pd.DataFrame(columns=columns)
 
-        # 打印结果
-        # print(protein_feat)
-        for i in range(test_proteins.shape[0]):
-            protein_data = []
-            protein_seq = test_proteins['target_aa_code'][i]
-            protein_data.append(protein_seq)
+            # 打印结果
+            # print(RNA_feat)
 
-            # protein_embedding = compressed_protein_array[i, :]
-            protein_embedding = protein_array[i, :]
+            for i in range(test_rnas.shape[0]):
+                RNA_data = []
+                rna_seq = test_rnas['RNA_aa_code'][i]
+                RNA_data.append(rna_seq)
 
-            for i in range(len(protein_embedding)):
-                protein_data.append(protein_embedding[i])
-            if rnas_length > proteins_length:
-                protein_data = protein_data + [0] * max(0, rnas_length + 1 - len(protein_data))
+                rna_embedding = rna_array[i, :]
 
-            protein_feat.loc[len(protein_feat)] = protein_data
-        # print(protein_feat)
-        # print("load protein_feat")
-        total_feat = pd.concat([RNA_feat, protein_feat], axis=0)
-        total_feat = total_feat.reset_index(drop=True)
-        # print(total_feat.shape)
-        # print(total_feat)
+                for i in range(len(rna_embedding)):
+                    RNA_data.append(rna_embedding[i])
 
-        # print("load total_feat")
-        ### 写入到文件
+                if rnas_length < proteins_length:
+                    RNA_data = RNA_data + [0] * max(0, proteins_length + 1 - len(RNA_data))
+                # RNA_data = RNA_data + [0] * max(0, 1025 - len(RNA_data))
+                # print(RNA_data)
+                RNA_feat.loc[len(RNA_feat)] = RNA_data
+            # print(RNA_feat)
+            # print("load RNA_feat")
+            ### 制作 protein 的特征文件
+            # 创建一个空的 protein DataFrame
+            # columns = ['nodes'] + [f'fea_{i}' for i in range(1, 1024 + 1)]
+            if rnas_length < proteins_length:
+                columns = ['nodes'] + [f'fea_{i}' for i in range(1, proteins_length + 1)]
+            elif rnas_length >= proteins_length:
+                columns = ['nodes'] + [f'fea_{i}' for i in range(1, rnas_length + 1)]
+            protein_feat = pd.DataFrame(columns=columns)
 
-        output_feats_file = unseen_dataset + '_graphsage_dataset/' + unseen_dataset + '_feats.txt'
-        total_feat.to_csv(output_feats_file, sep='\t', index=False, header=False)
+            # 打印结果
+            # print(protein_feat)
+            for i in range(test_proteins.shape[0]):
+                protein_data = []
+                protein_seq = test_proteins['target_aa_code'][i]
+                protein_data.append(protein_seq)
+
+                # protein_embedding = compressed_protein_array[i, :]
+                protein_embedding = protein_array[i, :]
+
+                for i in range(len(protein_embedding)):
+                    protein_data.append(protein_embedding[i])
+                if rnas_length > proteins_length:
+                    protein_data = protein_data + [0] * max(0, rnas_length + 1 - len(protein_data))
+
+                protein_feat.loc[len(protein_feat)] = protein_data
+            # print(protein_feat)
+            # print("load protein_feat")
+            total_feat = pd.concat([RNA_feat, protein_feat], axis=0)
+            total_feat = total_feat.reset_index(drop=True)
+            # print(total_feat.shape)
+            # print(total_feat)
+
+            # print("load total_feat")
+            ### 写入到文件
+
+            total_feat.to_csv(output_feats_file, sep='\t', index=False, header=False)
 
         feat_data_list = feat_data.tolist()
         # print('输出feat_data_list')
@@ -1030,11 +1037,12 @@ class ZHMolGraph():
 
         graphsage.dataCenter = dataCenter
         
-        unseen_indexs, feat_data = graphsage.dataCenter.load_unseen_dataSet(unseen_dataset, graphsage.adj_lists, node_map,
-                                                                            feat_data_list)
+        unseen_indexs, feat_data = graphsage.dataCenter.load_unseen_dataSet(unseen_dataset, graphsage.adj_lists,
+                                                                            node_map, feat_data_list)
 
         # print('输出feat_data')
         # print(feat_data)
+        # print(feat_data.shape)
         # print(type(feat_data))
 
         raw_features = torch.FloatTensor(feat_data).to(device)
@@ -1044,6 +1052,11 @@ class ZHMolGraph():
         graphsage.eval()
         embs = get_unseen_gnn_embeddings(graphsage, graphsage.dataCenter, unseen_dataset, graphsage.adj_lists)
         # print(f"嵌入的尺寸: {embs.shape}")
+        # file_path = 'test_embeddings.csv'
+        # with open(file_path, 'w', newline='') as csv_file:
+        #     csv_writer = csv.writer(csv_file, delimiter='\t')
+        #     for row in embs:
+        #         csv_writer.writerow(row.tolist())
 
         graphsage_embeddings = embs.cpu().numpy()
 
@@ -1055,6 +1068,7 @@ class ZHMolGraph():
         # self.graphsage_proteins_embeddings = protein_array
         self.graphsage_rnas_embeddings = np.concatenate((graphsage_rnas_embeddings, rna_array), axis=1)
         self.graphsage_proteins_embeddings = np.concatenate((graphsage_proteins_embeddings, protein_array), axis=1)
+
 
 
 
@@ -1504,7 +1518,7 @@ class ZHMolGraph():
                 self.get_unseen_graphsage_embeddings(model_path=graphsage_model_path, model_dataset=model_dataset,
                                                               unseen_dataset=jobname, embedding_type=embedding_type,
                                                      rna_vector_length=rna_vector_length, protein_vector_length=protein_vector_length,
-                                                     rnas=rnas, proteins=proteins, run_number=run, test_interactions=test_dataframe)
+                                                     rnas=rnas, proteins=proteins, test_interactions=test_dataframe)
 
                 self.normalized_protein_embeddings = self.graphsage_proteins_embeddings
                 self.normalized_rna_embeddings = self.graphsage_rnas_embeddings
