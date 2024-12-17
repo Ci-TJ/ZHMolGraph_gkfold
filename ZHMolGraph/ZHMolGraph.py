@@ -25,6 +25,7 @@ import argparse
 import pyhocon
 import random
 import csv
+import fm
 
 
 from graphsage_src.My_dataCenter import *
@@ -268,7 +269,8 @@ class ZHMolGraph():
     ###################################################
     ############ Test/Validation Functions ############n
     ###################################################
-    def get_benchmark_validation_ZHMolGraph_results(self, rna_embedding_length=640, protein_embedding_length=1024, dataset=None, embedding_type=None, graphsage_embedding=1, result_file="RPNet_Line.csv"):
+    def get_benchmark_validation_ZHMolGraph_results(self, rna_embedding_length=640, protein_embedding_length=1024, dataset=None, 
+        embedding_type=None, graphsage_embedding=1, result_file="ZHMolGraph_Line.csv"):
 
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -865,7 +867,9 @@ class ZHMolGraph():
         else:
             print("请输入正确的graphsage_embedding的参数!")
 
-    def get_unseen_graphsage_embeddings(self, config='./graphsage_src/experiments.conf', model_path=None, model_dataset=None, unseen_dataset=None, rna_vector_length=None, protein_vector_length=None,
+    def get_unseen_graphsage_embeddings(self, config='./graphsage_src/experiments.conf', model_path=None, 
+                                        model_dataset=None, unseen_dataset=None, rna_vector_length=None, 
+                                        protein_vector_length=None,
                                         rnas=None, proteins=None, embedding_type=None):
         '''
         获取未见过节点的网络上的embeddings
@@ -1161,3 +1165,406 @@ class ZHMolGraph():
         self.graphSage = graphSage
         return self.graphsage_embeddings
 
+    #############################################################
+    ###########          get embeddings              ############
+    #############################################################
+    # Get RNA Embeddings From RNAFM
+    def get_rnafm_embeddings(self, prediction_interactions = None, embedding_dimension = 640,
+                             replace_dataframe = True, return_normalisation_conststants = False, delimiter = '\t'):
+
+        '''
+            Reads in rnafm model generates embeddings for all rnas in rnas dataframe
+
+            Inputs :
+            embedding_dimension : Integer - Dimensions of rnafm embedding
+            prediction_interactions : Pandas DataFrame - Dataframe with prediction information
+            replace_dataframe : Bool - Replace existing rnas dataframe with one that contains rna Sequences and its respective normalised rnafm embedding
+            return_normalisation_conststants : Bool - Returns normalisation constant if true
+            delimiter : String - Delimiter for reading in Pandas rnafm DataFrame
+        '''
+
+        if type(prediction_interactions) != type(None):
+            rna_list = list(prediction_interactions[self.rna_seq_name])
+            replace_dataframe = False
+        else:
+            rna_list = self.rna_list
+
+        rna_embeddings = np.zeros((len(rna_list), embedding_dimension))
+        length_of_rna = [0 for _ in range(len(rna_list))]
+
+        # Load RNA-FM model
+        model, alphabet = fm.pretrained.rna_fm_t12()
+        batch_converter = alphabet.get_batch_converter()
+        model.eval()  # disables dropout for deterministic results
+
+        # # For each RNA in rna list
+        # for idx, RNA in tqdm(enumerate(rna_list)):
+        #
+        #     # 创建包含元组的列表
+        #     if len(RNA) > 1022:
+        #         RNA = RNA[:1022]
+        #     RNA_tuple = [("RNA1", RNA)]
+        #     #print(RNA_tuple)
+        #     batch_labels, batch_strs, batch_tokens = batch_converter(RNA_tuple)
+        #
+        #     #print(batch_tokens)
+        #
+        #     with torch.no_grad():
+        #         results = model(batch_tokens, repr_layers=[12])
+        #     #print(results)
+        #     token_embeddings = results["representations"][12]
+        #     #print(token_embeddings)
+        #     token_embeddings_np = token_embeddings.numpy()
+        #     token_embeddings_np = token_embeddings_np[0,]
+        #     token_embeddings_np_RNAlength = token_embeddings_np[1:-1, :]
+        #     token_embeddings_np_RNAlength_mean = np.mean(token_embeddings_np_RNAlength, axis=0)
+        #     #print(token_embeddings_np_RNAlength_mean)
+        #     rna_embeddings[idx, :] = token_embeddings_np_RNAlength_mean
+        #
+        # self.rna_embeddings = rna_embeddings
+
+        # For each RNA in rna list
+        for idx, RNA in tqdm(enumerate(rna_list)):
+
+            # 创建包含元组的列表
+            if len(RNA) > 1022:
+                # 指定每部分的长度
+                chunk_size = 1022
+
+                # 使用切片将字符串分成指定长度的部分
+                chunks = [RNA[i:i + chunk_size] for i in range(0, len(RNA), chunk_size)]
+                # token_embeddings_np_RNAlength = np.empty((1022,))
+                # print(token_embeddings_np_RNAlength)
+                # 对每个部分进行操作（示例：打印每个部分）
+                for j, chunk in enumerate(chunks):
+                    # print(j)
+                    # print(chunk)
+                    # 在这里进行你的操作
+                    RNA_tuple = [("RNA1", chunk)]
+                    # print(RNA_tuple)
+                    batch_labels, batch_strs, batch_tokens = batch_converter(RNA_tuple)
+
+                    # print(batch_tokens)
+
+                    with torch.no_grad():
+                        results = model(batch_tokens, repr_layers=[12])
+                    # print(results)
+                    token_embeddings_chunk = results["representations"][12]
+                    # print(token_embeddings)
+                    token_embeddings_chunk_np = token_embeddings_chunk.numpy()
+                    token_embeddings_chunk_np = token_embeddings_chunk_np[0,]
+                    token_embeddings_chunk_np_RNAlength = token_embeddings_chunk_np[1:-1, :]
+                    token_embeddings_chunk_np_RNAlength_mean = np.mean(token_embeddings_chunk_np_RNAlength, axis=0)
+                    if j == 0:
+                        token_embeddings_np_RNAlength = token_embeddings_chunk_np_RNAlength_mean
+                    else:
+                        token_embeddings_np_RNAlength = np.vstack([token_embeddings_np_RNAlength, token_embeddings_chunk_np_RNAlength_mean])
+                # print(token_embeddings_np_RNAlength_mean.shape)
+                # print(token_embeddings_np_RNAlength_mean)
+                token_embeddings_np_RNAlength_mean = np.mean(token_embeddings_np_RNAlength, axis=0)
+                # print(token_embeddings_np_RNAlength_mean.shape)
+                # print(token_embeddings_np_RNAlength_mean)
+                rna_embeddings[idx, :] = token_embeddings_np_RNAlength_mean
+                # print(token_embeddings_np_RNAlength_mean)
+
+                # # 将一维数组转为二维数组（每个样本一个特征）
+                # token_embeddings_np_RNAlength_mean_2d = token_embeddings_np_RNAlength_mean #.reshape(-1, 1)
+                #
+                # # 创建PCA模型并将数据压缩到640维
+                # protein_dimension = 640
+                # pca = PCA(n_components=protein_dimension)
+                # compressed_token_embeddings_np_RNAlength_mean = pca.fit_transform(token_embeddings_np_RNAlength_mean_2d)
+                #
+                # # 获取PCA的投影矩阵
+                # projection_matrix = pca.components_
+                #
+                # # 逆变换，将压缩后的数组映射回原始维度
+                # token_embeddings_np_RNAlength_mean_2d = np.dot(compressed_token_embeddings_np_RNAlength_mean, projection_matrix.T)
+                #
+                # # 将二维数组还原为一维数组
+                # token_embeddings_np_RNAlength_mean = token_embeddings_np_RNAlength_mean_2d.flatten()
+                #
+                #
+                # rna_embeddings[idx, :] = token_embeddings_np_RNAlength_mean
+
+                # # 指定目标长度
+                # protein_length = 640
+                #
+                # # 计算降采样因子
+                # downsampling_factor = len(token_embeddings_np_RNAlength_mean) // protein_length
+                #
+                # # 使用降采样将数组长度降低到目标长度
+                # token_embeddings_np_RNAlength_mean = token_embeddings_np_RNAlength_mean[::downsampling_factor]
+                # rna_embeddings[idx, :] = token_embeddings_np_RNAlength_mean
+
+                # # 指定目标长度
+                # protein_length = 640
+                #
+                # # 使用插值将数组长度插值到目标长度
+                # token_embeddings_np_RNAlength_mean = np.interp(np.linspace(0, 1, protein_length), np.linspace(0, 1, len(token_embeddings_np_RNAlength_mean)), token_embeddings_np_RNAlength_mean)
+                # rna_embeddings[idx, :] = token_embeddings_np_RNAlength_mean
+
+            else:
+                RNA_tuple = [("RNA1", RNA)]
+                #print(RNA_tuple)
+                batch_labels, batch_strs, batch_tokens = batch_converter(RNA_tuple)
+
+                #print(batch_tokens)
+
+                with torch.no_grad():
+                    results = model(batch_tokens, repr_layers=[12])
+                #print(results)
+                token_embeddings = results["representations"][12]
+                #print(token_embeddings)
+                token_embeddings_np = token_embeddings.numpy()
+                token_embeddings_np = token_embeddings_np[0,]
+                token_embeddings_np_RNAlength = token_embeddings_np[1:-1, :]
+                token_embeddings_np_RNAlength_mean = np.mean(token_embeddings_np_RNAlength, axis=0)
+                # print(token_embeddings_np_RNAlength_mean)
+                rna_embeddings[idx, :] = token_embeddings_np_RNAlength_mean
+
+        self.rna_embeddings = rna_embeddings
+
+        # Normalize embeddings - train data
+        if type(prediction_interactions) == type(None):
+            self.rna_embeddings = rna_embeddings
+            self.mean_rna_embeddings = np.mean(rna_embeddings, axis=0)
+            self.centered_rna_embeddings = rna_embeddings - self.mean_rna_embeddings
+            self.centered_rna_embeddings_length = np.mean(np.sqrt(np.sum(self.centered_rna_embeddings * self.centered_rna_embeddings, axis=1)))
+            #print(self.mean_rna_embeddings)
+
+            #print(self.centered_rna_embeddings_length)
+            #print(self.centered_rna_embeddings * self.centered_rna_embeddings)
+            self.normalized_rna_embeddings = self.centered_rna_embeddings / np.expand_dims(
+                self.centered_rna_embeddings_length, axis=-1)
+
+        # Normalize for prediction data and return
+        else:
+            centered_rna_embeddings = rna_embeddings - self.mean_rna_embeddings
+            normalized_rna_embeddings = centered_rna_embeddings / np.expand_dims(
+                self.centered_rna_embeddings_length, axis=-1)
+            rna_dataframe = pd.DataFrame([rna_list, normalized_rna_embeddings]).T
+            rna_dataframe.columns = [self.rna_seq_name, self.rna_embedding_name]
+            self.rna_dataframe = rna_dataframe
+            return rna_dataframe
+        # self.normalized_rna_embeddings = self.rna_embeddings
+        # Replace proteins dataframe with
+        if replace_dataframe:
+            self.rna_dataframe = pd.DataFrame([rna_list, self.normalized_rna_embeddings]).T
+            self.rna_dataframe.columns = [self.rna_seq_name, self.rna_embedding_name]
+
+        if return_normalisation_conststants:
+            return self.rna_embeddings, self.centered_rna_embeddings_length, self.normalized_rna_embeddings
+
+
+    # Get Target Embeddings From ProtTrans
+    def get_ProtTrans_embeddings(self, prediction_interactions=None, embedding_dimension=1024, replace_dataframe=True,
+                                 return_normalisation_conststants=False, delimiter='\t'):
+        '''
+            Reads in ProtVec model generates embeddings for all proteins in proteins dataframe
+
+            Inputs :
+            embedding_dimension : Integer - Dimensions of ProtVec embedding
+            prediction_interactions : Pandas DataFrame - Dataframe with prediction information
+            replace_dataframe : Bool - Replace existing proteins dataframe with one that contains AA Sequences and its respective normalised ProtVec embedding
+            return_normalisation_conststants : Bool - Returns normalisation constant if true
+            delimiter : String - Delimiter for reading in Pandas ProtVec DataFrame
+        '''
+
+        if type(prediction_interactions) != type(None):
+            protein_list = list(prediction_interactions[self.protein_seq_name])
+            replace_dataframe = False
+        else:
+            protein_list = self.protein_list
+
+        protein_embeddings = np.zeros((len(protein_list), embedding_dimension))
+        length_of_protein = [0 for _ in range(len(protein_list))]
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+        # Load the tokenizer
+        tokenizer = T5Tokenizer.from_pretrained('Rostlab/prot_t5_xl_half_uniref50-enc', do_lower_case=False)
+
+        # Load the model
+        model = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_half_uniref50-enc").to(device)
+
+        # only GPUs support half-precision currently; if you want to run on CPU use full-precision (not recommended, much slower)
+        model.full() if device == 'cpu' else model.half()
+
+        # For each protein in protein list
+        for idx, protein in tqdm(enumerate(protein_list)):
+            # print(idx)
+            # print(protein)
+            # print(type(protein))
+            protein = [protein]
+            # print(type(protein))
+
+            # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+            #
+            # # Load the tokenizer
+            # tokenizer = T5Tokenizer.from_pretrained('Rostlab/prot_t5_xl_half_uniref50-enc', do_lower_case=False)
+            #
+            # # Load the model
+            # model = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_half_uniref50-enc").to(device)
+            #
+            # # only GPUs support half-precision currently; if you want to run on CPU use full-precision (not recommended, much slower)
+            # model.full() if device == 'cpu' else model.half()
+
+            # replace all rare/ambiguous amino acids by X and introduce white-space between all amino acids
+            protein = [" ".join(list(re.sub(r"[UZOB]", "X", sequence))) for sequence in protein]
+
+
+            # tokenize sequences and pad up to the longest sequence in the batch
+            ids = tokenizer(protein, add_special_tokens=True, padding="longest")
+
+            input_ids = torch.tensor(ids['input_ids']).to(device)
+            attention_mask = torch.tensor(ids['attention_mask']).to(device)
+
+            # generate embeddings
+            with torch.no_grad():
+                embedding_repr = model(input_ids=input_ids, attention_mask=attention_mask)
+
+            # extract residue embeddings for the first ([0,:]) sequence in the batch and remove padded & special tokens ([0,:7])
+            emb_0 = embedding_repr.last_hidden_state[0, :-1]  # shape (7 x 1024)
+            # same for the second ([1,:]) sequence but taking into account different sequence lengths ([1,:8])
+            # emb_1 = embedding_repr.last_hidden_state[1,:8] # shape (8 x 1024)
+
+            # if you want to derive a single representation (per-protein embedding) for the whole protein
+            emb_0_per_protein = emb_0.mean(dim=0)  # shape (1024)
+            protein_embeddings[idx, :] = emb_0_per_protein.cpu().numpy()
+
+
+
+        self.protein_embeddings = protein_embeddings
+        # self.mean_protein_embeddings = np.mean(protein_embeddings, axis=0)
+        # Normalize embeddings - train data
+
+        if type(prediction_interactions) == type(None):
+            self.protein_embeddings = protein_embeddings
+            self.mean_protein_embeddings = np.mean(protein_embeddings, axis = 0)
+            self.centered_protein_embeddings = protein_embeddings - self.mean_protein_embeddings
+            self.centered_protein_embeddings_length = np.mean(np.sqrt(np.sum(self.centered_protein_embeddings * self.centered_protein_embeddings, axis = 1)))
+            self.normalized_protein_embeddings = self.centered_protein_embeddings / np.expand_dims(self.centered_protein_embeddings_length, axis = -1)
+
+        # Normalize for prediction data and return
+        else:
+            centered_protein_embeddings = protein_embeddings - self.mean_protein_embeddings
+            normalized_protein_embeddings = centered_protein_embeddings / np.expand_dims(self.centered_protein_embeddings_length, axis = -1)
+            proteins_dataframe = pd.DataFrame([protein_list, normalized_protein_embeddings]).T
+            proteins_dataframe.columns = [self.protein_seq_name, self.protein_embedding_name]
+            self.proteins_dataframe = proteins_dataframe
+            return proteins_dataframe
+
+        # self.normalized_protein_embeddings = self.protein_embeddings
+        # Replace proteins dataframe with
+        if replace_dataframe:
+            self.proteins_dataframe = pd.DataFrame([protein_list, self.normalized_protein_embeddings]).T
+            self.proteins_dataframe.columns = [self.protein_seq_name, self.protein_embedding_name]
+
+        if return_normalisation_conststants:
+            return self.protein_embeddings, self.centered_protein_embeddings_length, self.normalized_protein_embeddings
+
+################################################################
+######      Predict given RNA and protein sequence        ######
+################################################################
+
+    def predict_RPI(self, model_dataset=None,
+                          graphsage_path=None,
+                          jobname=None,
+                          test_dataframe=None,
+                          rna_vector_length=None,
+                          protein_vector_length=None,
+                          rnas=None,
+                          proteins=None,
+                          embedding_type=None,
+                          graphsage_embedding=1):
+
+        '''
+            Computes validation results
+
+            Inputs :
+
+
+            Outputs :
+
+
+        '''
+
+        if model_dataset == None:
+            sys.exit("请输入正确的数据集！")
+
+        if type(test_dataframe) == type(None):
+            sys.exit("请输入测试集！")
+        self.averaged_results = []
+
+        for run in range(5):
+            ### 获取graphsage的嵌入
+            if graphsage_embedding == 1:
+
+                graphsage_model_path = graphsage_path+'/Run_' + str(run) + '/graphSage.pth'
+                self.get_unseen_graphsage_embeddings(model_path=graphsage_model_path, model_dataset=model_dataset,
+                                                              unseen_dataset=jobname, embedding_type=embedding_type,
+                                                     rna_vector_length=rna_vector_length, protein_vector_length=protein_vector_length,
+                                                     rnas=rnas, proteins=proteins, run_number=run, test_interactions=test_dataframe)
+
+                self.normalized_protein_embeddings = self.graphsage_proteins_embeddings
+                self.normalized_rna_embeddings = self.graphsage_rnas_embeddings
+
+                X_0_test, X_1_test = self.dataframe_to_embed_array(
+                    interactions_df=test_dataframe,
+                    rna_list=self.rna_list,
+                    protein_list=self.protein_list,
+                    rna_embed_len=rna_vector_length+100,
+                    normalized_protein_embeddings=self.normalized_protein_embeddings,
+                    normalized_rna_embeddings=self.normalized_rna_embeddings,
+                    include_true_label=False)
+
+            else:
+                test_rnas = rnas
+                test_proteins = proteins
+                # 将节点的embedding变成np矩阵
+                rna_embeddings = test_rnas['normalized_embeddings']
+                rna_array = np.zeros((len(test_rnas['normalized_embeddings']), rna_vector_length))
+                # print(rna_embeddings)
+                protein_embeddings = test_proteins['normalized_embeddings']
+                protein_array = np.zeros((len(test_proteins['normalized_embeddings']), protein_vector_length))
+                # print(protein_embeddings)
+                # 使用 for 循环逐行赋值
+                for i in range(len(test_rnas['normalized_embeddings'])):
+                    # print(rna_embeddings.iloc[i].shape)
+                    rna_array[i, :] = rna_embeddings.iloc[i]
+
+                # 使用 for 循环逐行赋值
+                for i in range(len(test_proteins['normalized_embeddings'])):
+                    protein_array[i, :] = protein_embeddings.iloc[i]
+
+                self.normalized_protein_embeddings = protein_array
+                self.normalized_rna_embeddings = rna_array
+
+                X_0_test, X_1_test = self.dataframe_to_embed_array(
+                    interactions_df=test_dataframe,
+                    rna_list=self.rna_list,
+                    protein_list=self.protein_list,
+                    rna_embed_len=rna_vector_length,
+                    include_true_label=False)
+            # print(X_0_test)
+            # print(X_0_test.shape)
+            # print(X_1_test)
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+            best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run), f"VecNN_5_fold_Benchmark_Dataset_{model_dataset}.pth")
+
+            # 从检查点中加载模型状态字典
+            best_vecnet_model = torch.load(best_model_path)
+            best_vecnet_model.to(device)
+            # print(best_vecnet_model)
+
+            # 确保模型处于评估模式（不进行梯度计算）
+            best_vecnet_model.eval()
+
+            Y_test_predictions = best_vecnet_model(torch.tensor(X_0_test, dtype=torch.float32).to(device),
+                                          torch.tensor(X_1_test, dtype=torch.float32).to(
+                                              device)).detach().cpu().numpy()
+
+
+            # print(Y_test_predictions)
+            self.averaged_results.append(Y_test_predictions.flatten().tolist()[0])
