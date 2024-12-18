@@ -20,6 +20,7 @@ pip install tqdm
 pip install torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 pip install tensorboard
 pip install jupyter
+pip install rna-fm
 ```
 
 - All Python modules and corresponding versions required for ZHMolGraph are listed here: requirements.txt
