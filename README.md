@@ -31,7 +31,7 @@ pip install rna-fm
 # Code and Data
 
 ## Data Files
-All data files are available here: https://zenodo.org/records/12770088
+All data files are available here: https://zenodo.org/records/14511256
 
 - data/interactions/: Contains RNA-protein interactions data.
 - data/Mol2Vec/: Contains the embeddings from LLMs.
