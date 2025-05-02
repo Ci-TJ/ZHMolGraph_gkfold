@@ -27,6 +27,11 @@ import pyhocon
 import random
 import csv
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+
 class VecNN(nn.Module):
     def __init__(self, target_embed_len=1024, rna_embed_len=640, graphsage_embedding=1):
         super(VecNN, self).__init__()
@@ -140,5 +145,37 @@ class VecNN(nn.Module):
         output = self.output_layer(x)
 
         return output
+        
 
+#criterion = nn.BCELoss() #vecnn apply sigmoid
+#optimizer =  optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999)) # Adam β1=0.9, β2=0.999
+def train(model, train_loader, optimizer, criterion=nn.BCELoss(), num_epochs=120, 
+          device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
+    model.train()
+    for epoch in range(num_epochs):
+        total_loss = 0
+        for batch_data, batch_labels in train_loader:
+            batch_data, batch_labels = batch_data.to(device), batch_labels.to(device)
 
+            optimizer.zero_grad()
+            outputs = model(batch_data)
+            loss = criterion(outputs.squeeze(), batch_labels) 
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+        avg_loss = total_loss / len(train_loader)
+
+        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
+
+class VecNNDataset(Dataset):
+    def __init__(self, x0, x1, y):
+        self.x0 = torch.tensor(x0, dtype=torch.float32)
+        self.x1 = torch.tensor(x1, dtype=torch.float32)
+        self.y = torch.tensor(y, dtype=torch.float32)
+    
+    def __len__(self):
+        return len(self.y)
+    
+    def __getitem__(self, idx):
+        return torch.cat((self.x0[idx], self.x1[idx]), dim=0), self.y[idx]
