@@ -324,17 +324,17 @@ class ZHMolGraph():
             # 从检查点中加载模型状态字典
 
             best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run_number), f"VecNN_5_gkfold_Benchmark_Dataset_{dataset}.pth") #Seager: fold to gkfold
-            vecnn = VecNN()
+            vecnn = VecNN().to(device)
             x0, x1, y = self.dataframe_to_embed_array(
                     interactions_df=self.train_sets[run_number],
                     rna_list=self.rna_list,
                     protein_list=self.protein_list,
-                    rna_embed_len=self.rna_embed_len)
+                    rna_embed_len=self.rna_embed_len) #Note: x0 is protein, x1 is rna, y is label
             vecnn_data = VecNNDataset(x0, x1, y)
             train_loader = DataLoader(vecnn_data, batch_size=128, shuffle=True) #Seager: bs is 128 in article
-            optimizer =  optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999)) # Adam β1=0.9, β2=0.999
+            optimizer =  optim.Adam(vecnn.parameters(), lr=0.001, betas=(0.9, 0.999)) # Adam β1=0.9, β2=0.999
             criterion=nn.BCELoss() #sigmoid apply in VecNN
-            train(model, train_loader, optimizer, criterion, num_epochs=120, device, best_model_path)
+            train(model, train_loader, optimizer, criterion, 120, device, best_model_path) #num_epochs=120
 
             best_model = torch.load(best_model_path)
             # print(f"loaded best_model")
