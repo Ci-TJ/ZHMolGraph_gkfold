@@ -150,7 +150,7 @@ class VecNN(nn.Module):
 #criterion = nn.BCELoss() #vecnn apply sigmoid
 #optimizer =  optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999)) # Adam β1=0.9, β2=0.999
 def train(model, train_loader, optimizer, criterion=nn.BCELoss(), num_epochs=120, 
-          device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
+          device=torch.device("cuda" if torch.cuda.is_available() else "cpu"), model_path=None):
     model.train()
     for epoch in range(num_epochs):
         total_loss = 0
@@ -167,7 +167,13 @@ def train(model, train_loader, optimizer, criterion=nn.BCELoss(), num_epochs=120
         avg_loss = total_loss / len(train_loader)
 
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
-
+    if model_path is None:
+        print("Input the saveing path!","\n")
+    else:
+        torch.save(model, model_path)
+    return model
+              
+              
 class VecNNDataset(Dataset):
     def __init__(self, x0, x1, y):
         self.x0 = torch.tensor(x0, dtype=torch.float32)
