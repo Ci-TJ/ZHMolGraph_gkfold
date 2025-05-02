@@ -46,8 +46,8 @@ class VecNN(nn.Module):
             elif target_embed_len == 49:
                 self.target_conv_len = 584
 
-            print('self.target_conv_len\n')
-            print(self.target_conv_len)
+            #print('self.target_conv_len\n')
+            #print(self.target_conv_len)
 
             if rna_embed_len == 640:
                 self.rna_conv_len = 2952
@@ -64,8 +64,8 @@ class VecNN(nn.Module):
             elif target_embed_len == 49:
                 self.target_conv_len = 184
 
-            print('self.target_conv_len\n')
-            print(self.target_conv_len)
+            #print('self.target_conv_len\n')
+            #print(self.target_conv_len)
             if rna_embed_len == 640:
                 self.rna_conv_len = 2552
             elif rna_embed_len == 64:
@@ -134,8 +134,8 @@ class VecNN(nn.Module):
         rnas_input = self.flatten(rnas_input)
         # print(target_input)
         # print(rnas_input)
-        print(target_input.shape)
-        print(rnas_input.shape)
+        #print(target_input.shape)
+        #print(rnas_input.shape)
 
         target_output = self.target_layer(target_input)
         rnas_output = self.rna_layer(rnas_input)
@@ -154,11 +154,12 @@ def train(model, train_loader, optimizer, criterion=nn.BCELoss(), num_epochs=120
     model.train()
     for epoch in range(num_epochs):
         total_loss = 0
-        for batch_data, batch_labels in train_loader:
-            batch_data, batch_labels = batch_data.to(device), batch_labels.to(device)
+        for batch_x0, batch_x1, batch_labels in train_loader:  
+            batch_x0, batch_x1, batch_labels = batch_x0.to(device), batch_x1.to(device), batch_labels.to(device)
 
             optimizer.zero_grad()
-            outputs = model(batch_data)
+            outputs = model(batch_x0, batch_x1)  # 传递两个输入
+
             loss = criterion(outputs.squeeze(), batch_labels) 
             loss.backward()
             optimizer.step()
@@ -167,13 +168,15 @@ def train(model, train_loader, optimizer, criterion=nn.BCELoss(), num_epochs=120
         avg_loss = total_loss / len(train_loader)
 
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
+
     if model_path is None:
-        print("Input the saveing path!","\n")
+        print("Check your path")
     else:
-        torch.save(model, model_path)
+        torch.save(model, model_path) 
+        print(f"model saving to {model_path}")
+
     return model
-              
-              
+
 class VecNNDataset(Dataset):
     def __init__(self, x0, x1, y):
         self.x0 = torch.tensor(x0, dtype=torch.float32)
@@ -184,4 +187,4 @@ class VecNNDataset(Dataset):
         return len(self.y)
     
     def __getitem__(self, idx):
-        return torch.cat((self.x0[idx], self.x1[idx]), dim=0), self.y[idx]
+        return self.x0[idx], self.x1[idx], self.y[idx]
