@@ -30,7 +30,7 @@ import csv
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 
 class VecNN(nn.Module):
     def __init__(self, target_embed_len=1024, rna_embed_len=640, graphsage_embedding=1):
