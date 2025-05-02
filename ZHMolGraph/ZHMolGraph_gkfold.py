@@ -291,15 +291,16 @@ class ZHMolGraph():
 
 
             graphsage_model_path = os.path.join(self.model_out_dir,
-                                                'Run_' + str(run_number), "graphSage.pth")
+                                                'gkRun_' + str(run_number), "graphSage.pth") #Seager: Run to gkRun
+
+            run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
+                                 gcn=False, learn_method='unsup', unsup_loss='margin', max_vali_f1=0, name='debug',
+                                 config='./graphsage_src/experiments.conf',embedding_type=embedding_type) #epochs=2 to 10;cuda=False to True
+            torch.save(self.graphSage, graphsage_model_path) #Seager: Note run_graphsage_experiment() set self.graphSage = graphSage
 
             self.get_test_graphsage_embeddings(self.train_sets[run_number], self.test_sets[run_number], self.rnas,
                                           self.proteins, dataset, rna_embedding_length, protein_embedding_length,
                                           embedding_type=embedding_type, graphsage_embedding=graphsage_embedding, graphsage_model_path=graphsage_model_path)
-
-            # self.get_graphsage_embeddings(self.train_sets[run_number], self.test_sets[run_number], self.rnas,
-            #                               self.proteins, dataset, rna_embedding_length, protein_embedding_length,
-            #                               embedding_type=embedding_type, graphsage_embedding=graphsage_embedding)
 
             self.normalized_protein_embeddings = self.graphsage_proteins_embeddings
             self.normalized_rna_embeddings = self.graphsage_rnas_embeddings
@@ -317,11 +318,13 @@ class ZHMolGraph():
             # print(f"best_model")
             # print(best_model)
             # print(best_model.state_dict())
+            
 
 
             # 从检查点中加载模型状态字典
 
-            best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run_number), f"VecNN_5_fold_Benchmark_Dataset_{dataset}.pth")
+            best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run_number), f"VecNN_5_gkfold_Benchmark_Dataset_{dataset}.pth") #Seager: fold to gkfold
+            vecnn = VecNN()
 
             best_model = torch.load(best_model_path)
             # print(f"loaded best_model")
@@ -430,10 +433,12 @@ class ZHMolGraph():
                 curr_test_accuracy = accuracy_score(Y_test_actual_ue, Y_test_predictions_labels)
                 # 计算precision值
                 curr_test_precision = precision_score(Y_test_actual_ue, Y_test_predictions_labels)
-                # 计算recall值
+                # 计算recall值(Sensitivity)
                 curr_test_recall = recall_score(Y_test_actual_ue, Y_test_predictions_labels)
                 # 计算MCC值
                 curr_test_mcc = matthews_corrcoef(Y_test_actual_ue, Y_test_predictions_labels)
+                # 计算 F1-score
+                curr_test_f1 = f1_score(Y_test_actual_ue, Y_test_predictions_labels) #Seager:
                 # 计算混淆矩阵
                 cm = confusion_matrix(Y_test_actual_ue, Y_test_predictions_labels)
 
@@ -450,6 +455,7 @@ class ZHMolGraph():
                 test_recall_ue.append(curr_test_recall)
                 test_mcc_ue.append(curr_test_mcc)
                 test_spe_ue.append(curr_test_spe)
+                test_f1_ue.append(curr_test_f1)  #Seager
 
                 output_string = ""
                 # Print Stuff
