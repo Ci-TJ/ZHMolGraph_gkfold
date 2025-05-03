@@ -34,8 +34,8 @@ from graphsage_src.my_models import *
 
 from ZHMolGraph.ZHMolGraph_model import *
 
-
-class ZHMolGraph():
+#Seager: ZHMolGraph to gkZHMolGraph
+class gkZHMolGraph():
 
     # Class Initialisation
     def __init__(self,
@@ -283,6 +283,7 @@ class ZHMolGraph():
         test_recall_ue = []
         test_mcc_ue = []
         test_spe_ue = []
+        test_f1_ue = []
 
         for run_number in tqdm(range(len(self.train_sets))):
             print(20*"——")
@@ -291,7 +292,7 @@ class ZHMolGraph():
 
 
             graphsage_model_path = os.path.join(self.model_out_dir,
-                                                'gkRun_' + str(run_number), "graphSage.pth") #Seager: Run to gkRun
+                                                'kRun_' + str(run_number), "graphSage.pth") #Seager: Run to kRun
 
             run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
                                  gcn=False, learn_method='unsup', unsup_loss='margin', max_vali_f1=0, name='debug',
@@ -323,7 +324,7 @@ class ZHMolGraph():
 
             # 从检查点中加载模型状态字典
 
-            best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run_number), f"VecNN_5_gkfold_Benchmark_Dataset_{dataset}.pth") #Seager: fold to gkfold
+            best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run_number), f"VecNN_5_kfold_Benchmark_Dataset_{dataset}.pth") #Seager: fold to kfold
             vecnn = VecNN().to(device)
             x0, x1, y = self.dataframe_to_embed_array(
                     interactions_df=self.train_sets[run_number],
@@ -459,13 +460,14 @@ class ZHMolGraph():
                 curr_test_spe = tn / (tn + fp)
 
                 test_aup_ue.append(curr_test_aup)
-                test_auc_ue.append(curr_test_auc)
                 test_accuracy_ue.append(curr_test_accuracy)
-                test_precision_ue.append(curr_test_precision)
-                test_recall_ue.append(curr_test_recall)
+                test_auc_ue.append(curr_test_auc)
                 test_mcc_ue.append(curr_test_mcc)
-                test_spe_ue.append(curr_test_spe)
                 test_f1_ue.append(curr_test_f1)  #Seager
+                test_precision_ue.append(curr_test_precision)
+                test_recall_ue.append(curr_test_recall) #sensitivity
+                test_spe_ue.append(curr_test_spe)
+                
 
                 output_string = ""
                 # Print Stuff
@@ -473,11 +475,14 @@ class ZHMolGraph():
                 #     np.round(test_auc_ue[-1], 3)) + "\n"
                 # output_string = output_string + "AUPRC : " + str(
                 #     np.round(test_aup_ue[-1], 3)) + "\n"
-                output_string = output_string + "accuracy : " + str(np.round(curr_test_accuracy, 3)) + "\n"
-                output_string = output_string + "sensitivity : " + str(np.round(curr_test_recall, 3)) + "\n"
-                output_string = output_string + "specificity : " + str(np.round(curr_test_spe, 3)) + "\n"
-                output_string = output_string + "precision : " + str(np.round(curr_test_precision, 3)) + "\n"
-                output_string = output_string + "mcc : " + str(np.round(curr_test_mcc, 3)) + "\n"
+                output_string = output_string + "accuracy : " + str(np.round(curr_test_accuracy, 4)) + "\n"
+                output_string = output_string + "auc : " + str(np.round(curr_test_auc, 4)) + "\n"
+                output_string = output_string + "f1-score : " + str(np.round(curr_test_f1, 4)) + "\n"
+                output_string = output_string + "mcc : " + str(np.round(curr_test_mcc, 4)) + "\n"
+                output_string = output_string + "precision : " + str(np.round(curr_test_precision, 4)) + "\n"
+                output_string = output_string + "sensitivity : " + str(np.round(curr_test_recall, 4)) + "\n"
+                output_string = output_string + "specificity : " + str(np.round(curr_test_spe, 4)) + "\n"
+                
                 output_string = output_string + "tn : " + str(tn) + "\n"
                 output_string = output_string + "fp : " + str(fp) + "\n"
                 output_string = output_string + "fn : " + str(fn) + "\n"
@@ -493,11 +498,13 @@ class ZHMolGraph():
 
                 with open(f"{output_dir}/Run_{run_number}", "a") as file:
                     output_result_text = ""
-                    output_result_text = output_result_text + "accuracy : " + "{:.3f}".format(curr_test_accuracy) + ", "
-                    output_result_text = output_result_text + "sensitivity : " + "{:.3f}".format(curr_test_recall)+ ", "
-                    output_result_text = output_result_text + "specificity : " + "{:.3f}".format(curr_test_spe) + ", "
-                    output_result_text = output_result_text + "precision : " +  "{:.3f}".format(curr_test_precision) + ", "
-                    output_result_text= output_result_text + "mcc : " + "{:.3f}".format(curr_test_mcc) + "\n"
+                    output_result_text = output_result_text + "accuracy : " + "{:.4f}".format(curr_test_accuracy) + ", "
+                    output_result_text = output_result_text + "auc : " + "{:.4f}".format(curr_test_auc) + ", "
+                    output_result_text= output_result_text + "f1-score : " + "{:.4f}".format(curr_test_f1) + "\n"
+                    output_result_text= output_result_text + "mcc : " + "{:.4f}".format(curr_test_mcc) + "\n"
+                    output_result_text = output_result_text + "precision : " +  "{:.4f}".format(curr_test_precision) + ", "
+                    output_result_text = output_result_text + "sensitivity : " + "{:.4f}".format(curr_test_recall)+ ", "
+                    output_result_text = output_result_text + "specificity : " + "{:.4f}".format(curr_test_spe) + ", "
 
                     file.write(output_result_text)
 
@@ -506,20 +513,27 @@ class ZHMolGraph():
         print(25 * "——")
 
         # print("Best Model Suffix : ", self.model_name_index[model_name][best_model])
-        # print("AUROC : ", np.round(np.mean(test_auc_ue), 3), "+/-", np.std(test_auc_ue))
-        # print("AUPRC : ", np.round(np.mean(test_aup_ue), 3), "+/-", np.std(test_aup_ue))
-        print("Accuracy : ", np.round(np.mean(test_accuracy_ue), 3), "+/-", np.std(test_accuracy_ue))
-        print("Sensitivity : ", np.round(np.mean(test_recall_ue), 3), "+/-", np.std(test_recall_ue))
-        print("Specificity : ", np.round(np.mean(test_spe_ue), 3), "+/-", np.std(test_spe_ue))
-        print("Precision : ", np.round(np.mean(test_precision_ue), 3), "+/-", np.std(test_precision_ue))
-        print("MCC : ", np.round(np.mean(test_mcc_ue), 3), "+/-", np.std(test_mcc_ue))
+        # print("AUROC : ", np.round(np.mean(test_auc_ue), 4), "+/-", np.std(test_auc_ue))
+        # print("AUPRC : ", np.round(np.mean(test_aup_ue), 4), "+/-", np.std(test_aup_ue))
+        print("Accuracy : ", np.round(np.mean(test_accuracy_ue), 4), "+/-", np.std(test_accuracy_ue))
+        print("AUC : ", np.round(np.mean(test_auc_ue), 4), "+/-", np.std(test_auc_ue))
+        print("F1-score : ", np.round(np.mean(test_f1_ue), 4), "+/-", np.std(test_f1_ue))
+        print("MCC : ", np.round(np.mean(test_mcc_ue), 4), "+/-", np.std(test_mcc_ue))
+        print("Precision : ", np.round(np.mean(test_precision_ue), 4), "+/-", np.std(test_precision_ue))
+        print("Sensitivity : ", np.round(np.mean(test_recall_ue), 4), "+/-", np.std(test_recall_ue))
+        print("Specificity : ", np.round(np.mean(test_spe_ue), 4), "+/-", np.std(test_spe_ue))
+        
+        
 
-        test_accuracy_ue_df = pd.DataFrame({'Acc': np.round(test_accuracy_ue, 3)})
-        test_recall_ue_df = pd.DataFrame({'Sen': np.round(test_recall_ue, 3)})
-        test_spe_ue_df = pd.DataFrame({'Spe': np.round(test_spe_ue, 3)})
-        test_precision_ue_df = pd.DataFrame({'Pre': np.round(test_precision_ue, 3)})
-        test_mcc_ue_df = pd.DataFrame({'MCC': np.round(test_mcc_ue, 3)})
-        performance_df = pd.concat([test_accuracy_ue_df, test_recall_ue_df, test_spe_ue_df, test_precision_ue_df, test_mcc_ue_df], axis=1)
+        test_accuracy_ue_df = pd.DataFrame({'Acc': np.round(test_accuracy_ue, 4)})
+        test_auc_ue_df = pd.DataFrame({'AUC': np.round(test_auc_ue, 4)})
+        test_f1_ue_df = pd.DataFrame({'F1-score': np.round(test_f1_ue, 4)})
+        test_mcc_ue_df = pd.DataFrame({'MCC': np.round(test_mcc_ue, 4)})
+        test_precision_ue_df = pd.DataFrame({'Pre': np.round(test_precision_ue, 4)})
+        test_recall_ue_df = pd.DataFrame({'Sen': np.round(test_recall_ue, 4)})
+        test_spe_ue_df = pd.DataFrame({'Spe': np.round(test_spe_ue, 4)})
+        
+        performance_df = pd.concat([test_accuracy_ue_df, test_auc_ue_df, test_f1_ue_df, test_mcc_ue_df, test_precision_ue_df, ttest_recall_ue_df,, test_spe_ue_df], axis=1)
         # print(performance_df)
         print("写入result文件夹")
         # 获取当前工作目录
