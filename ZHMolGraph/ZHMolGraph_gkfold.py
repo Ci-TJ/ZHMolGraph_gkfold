@@ -533,7 +533,7 @@ class gkZHMolGraph():
         test_recall_ue_df = pd.DataFrame({'Sen': np.round(test_recall_ue, 4)})
         test_spe_ue_df = pd.DataFrame({'Spe': np.round(test_spe_ue, 4)})
         
-        performance_df = pd.concat([test_accuracy_ue_df, test_auc_ue_df, test_f1_ue_df, test_mcc_ue_df, test_precision_ue_df, ttest_recall_ue_df,, test_spe_ue_df], axis=1)
+        performance_df = pd.concat([test_accuracy_ue_df, test_auc_ue_df, test_f1_ue_df, test_mcc_ue_df, test_precision_ue_df, ttest_recall_ue_df, test_spe_ue_df], axis=1)
         # print(performance_df)
         print("写入result文件夹")
         # 获取当前工作目录
