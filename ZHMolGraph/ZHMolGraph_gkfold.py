@@ -293,8 +293,10 @@ class gkZHMolGraph():
 
             graphsage_model_path = os.path.join(self.model_out_dir,
                                                 'kRun_' + str(run_number), "graphSage.pth") #Seager: Run to kRun
+            if not os.path.exists(os.path.join(self.model_out_dir,'kRun_' + str(run_number))):
+                os.makedirs(os.path.join(self.model_out_dir,'kRun_' + str(run_number)))
 
-            run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
+            self.run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
                                  gcn=False, learn_method='unsup', unsup_loss='margin', max_vali_f1=0, name='debug',
                                  config='./graphsage_src/experiments.conf',embedding_type=embedding_type) #epochs=2 to 10;cuda=False to True
             torch.save(self.graphSage, graphsage_model_path) #Seager: Note run_graphsage_experiment() set self.graphSage = graphSage
@@ -324,7 +326,7 @@ class gkZHMolGraph():
 
             # 从检查点中加载模型状态字典
 
-            best_model_path = os.path.join(self.model_out_dir, 'Run_' + str(run_number), f"VecNN_5_kfold_Benchmark_Dataset_{dataset}.pth") #Seager: fold to kfold
+            best_model_path = os.path.join(self.model_out_dir, 'kRun_' + str(run_number), f"VecNN_5_fold_Benchmark_Dataset_{dataset}.pth") #Seager: Run to kRun
             vecnn = VecNN().to(device)
             x0, x1, y = self.dataframe_to_embed_array(
                     interactions_df=self.train_sets[run_number],
