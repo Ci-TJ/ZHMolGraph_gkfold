@@ -337,7 +337,7 @@ class gkZHMolGraph():
             train_loader = DataLoader(vecnn_data, batch_size=128, shuffle=True) #Seager: bs is 128 in article
             optimizer =  optim.Adam(vecnn.parameters(), lr=0.001, betas=(0.9, 0.999)) # Adam β1=0.9, β2=0.999
             criterion=nn.BCELoss() #sigmoid apply in VecNN
-            train(model, train_loader, optimizer, criterion, 120, device, best_model_path) #num_epochs=120
+            train(vecnn, train_loader, optimizer, criterion, 120, device, best_model_path) #num_epochs=120
 
             best_model = torch.load(best_model_path)
             # print(f"loaded best_model")
