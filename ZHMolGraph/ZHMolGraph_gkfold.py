@@ -299,9 +299,12 @@ class gkZHMolGraph():
             if not os.path.exists(os.path.join(self.model_out_dir, self.sub_dir + str(run_number))):
                 os.makedirs(os.path.join(self.model_out_dir, self.sub_dir + str(run_number)))
 
-            self.run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
-                                 gcn=False, learn_method='unsup', unsup_loss='margin', max_vali_f1=0, name='debug',
-                                 config='./graphsage_src/experiments.conf',embedding_type=embedding_type) #epochs=2 to 10;cuda=False to True
+            node_emb = self.run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
+                                                     gcn=False, learn_method='unsup', unsup_loss='margin', max_vali_f1=0, name='debug',
+                                                     config='./graphsage_src/experiments.conf',embedding_type=embedding_type) #epochs=2 to 10;cuda=False to True
+            print("Training GNN embeddings:",node_emb.shape)
+            df_ne = pd.DataFrame(df_ne)
+            df_ne.to_csv("linshi_node_emb.csv")
             torch.save(self.graphSage, graphsage_model_path) #Seager: Note run_graphsage_experiment() set self.graphSage = graphSage
 
             self.get_test_graphsage_embeddings(self.train_sets[run_number], self.test_sets[run_number], self.rnas,
