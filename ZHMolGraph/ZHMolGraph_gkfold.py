@@ -763,7 +763,7 @@ class gkZHMolGraph():
 
         protein_embeddings = proteins['normalized_embeddings']
         protein_array = np.zeros((len(proteins['normalized_embeddings']), proteins_length))
-
+        print("line 766:", protein_array.shape) #Seager:
         # 使用 for 循环逐行赋值
         for i in range(len(rnas['normalized_embeddings'])):
             rna_array[i, :] = rna_embeddings.iloc[i]
@@ -809,11 +809,13 @@ class gkZHMolGraph():
                                                                       config='./graphsage_src/experiments.conf',
                                                                       embedding_type=embedding_type, graphsage_model_path=graphsage_model_path)
             graphsage_embeddings = self.graphsage_embeddings
-            # print(f'graphsage_embeddings.shape{graphsage_embeddings.shape}')
+            print(f'graphsage_embeddings.shape{graphsage_embeddings.shape}')
             graphsage_rnas_embeddings = graphsage_embeddings[:len(rnas)]
-            # print(f'graphsage_rnas_embeddings.shape{graphsage_rnas_embeddings.shape}')
+            print(f'graphsage_rnas_embeddings.shape{graphsage_rnas_embeddings.shape}')
             # print(f'rnas的长度：{len(rnas)}')
             graphsage_proteins_embeddings = graphsage_embeddings[len(rnas):len(proteins) + len(rnas)]
+            print("line817:", graphsage_proteins_embeddings.shape) #Seager:
+            print(rna_array.shape)
             # self.graphsage_rnas_embeddings = graphsage_rnas_embeddings
             # self.graphsage_proteins_embeddings = graphsage_proteins_embeddings
             # self.graphsage_rnas_embeddings = rna_array
