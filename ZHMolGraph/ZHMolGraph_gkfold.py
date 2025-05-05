@@ -299,11 +299,11 @@ class gkZHMolGraph():
             if not os.path.exists(os.path.join(self.model_out_dir, self.sub_dir + str(run_number))):
                 os.makedirs(os.path.join(self.model_out_dir, self.sub_dir + str(run_number)))
 
-            node_emb = self.run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=10, b_sz=20, seed=64, cuda=True,
+            node_emb = self.run_graphsage_experiment(dataSet=dataset, agg_func='MEAN', epochs=1, b_sz=512, seed=64, cuda=True,
                                                      gcn=False, learn_method='unsup', unsup_loss='margin', max_vali_f1=0, name='debug',
                                                      config='./graphsage_src/experiments.conf',embedding_type=embedding_type) #epochs=2 to 10;cuda=False to True
             print("Training GNN embeddings:",node_emb.shape)
-            df_ne = pd.DataFrame(df_ne)
+            df_ne = pd.DataFrame(node_emb)
             df_ne.to_csv("linshi_node_emb.csv")
             torch.save(self.graphSage, graphsage_model_path) #Seager: Note run_graphsage_experiment() set self.graphSage = graphSage
 
@@ -1123,7 +1123,7 @@ class gkZHMolGraph():
         graphSage.to(device)
         ### 直接输出，再保存graphsage的模型
         print(f"nn structure: {graphSage}")
-        #print(graphSage.adj_lists)
+        print(len(graphSage.adj_lists))
         unsupervised_loss = UnsupervisedLoss(getattr(dataCenter, ds + '_adj_lists'), getattr(dataCenter, ds + '_train'),
                                              device)
 
