@@ -1055,12 +1055,7 @@ class gkZHMolGraph():
 
         config = pyhocon.ConfigFactory.parse_file(config)
 
-        ds = dataSet
-        if current_split:
-            interaction_file = dataSet + '_' + embedding_type + '_graphsage_dataset/' + dataSet +'_total_interactions_seq_list.txt'
-            train_interaction_file = dataSet + '_' + embedding_type + '_graphsage_dataset/' + dataSet +'_graphsage_train_interactions.txt'
-            test_interaction_file = dataSet + '_' + embedding_type + '_graphsage_dataset/' + dataSet +'_graphsage_test_interactions.txt
-            
+        ds = dataSet 
         dataCenter = DataCenter(config)
         dataCenter.load_dataSet(ds, embedding_type=embedding_type) #运行dataCenter
         features = torch.FloatTensor(getattr(dataCenter, ds + '_feats')).to(device)
