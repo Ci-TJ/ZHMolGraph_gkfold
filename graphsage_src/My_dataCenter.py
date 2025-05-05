@@ -84,6 +84,7 @@ class DataCenter(object):
                 # if not info[-1] in label_map:
                 #     label_map[info[-1]] = len(label_map)
                 # labels.append(label_map[info[-1]])
+        print("Length of the node_map:",len(node_map.keys()))
         feat_data = np.asarray(feat_data)
         # print(info[0])
         # print(f"node_map: {node_map[info[0]]}")
@@ -114,6 +115,7 @@ class DataCenter(object):
         # test_indexs, val_indexs, train_indexs = self._split_data_edge(len(edges_lists), node_map, edges_lists)
 
         test_indexs, val_indexs, train_indexs = self._split_data_vecnet(edges_lists_train, edges_lists_test, node_map)
+        print("Test Validation Train indexs:", len(test_indexs), len(val_indexs), len(train_indexs))
 
         setattr(self, dataSet + '_test', test_indexs)
         setattr(self, dataSet + '_val', val_indexs)
