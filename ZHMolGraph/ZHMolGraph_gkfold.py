@@ -292,19 +292,44 @@ class gkZHMolGraph():
             print(20*"——")
             print(f"Run_{run_number}")
             print(20*"——")
-            #Seager: 20250507
+            #Seager: generate the files for GNN training based on the get_test_graphsage_embeddings in 20250507
+            ########################################
+            ########################################
             if same_split:
                 train_gnn = self.train_sets[run_number] #train set for gnn, note test/train=1.5 in ZG, so change 0 to 1 in 20250506
                 test_gnn = self.test_sets[run_number] #test set for gnn
-                train_gnn = train_gnn[["RNA_aa_code", "target_aa_code"]]
-                test_gnn = test_gnn[["RNA_aa_code", "target_aa_code"]]
+                train_interaction_df = pd.concat([train_gnn['RNA_aa_code'], train_gnn['target_aa_code']], axis=1)  # 训练集中所有相互作用
+                test_interaction_df = pd.concat([test_gnn['RNA_aa_code'], test_gnn['target_aa_code']], axis=1)  # 测试集中所有相互作用
 
-                all_lpi = pd.concat([train_gnn, test_gnn], axis=0)
-                #dataSet + '_' + embedding_type + '_graphsage_dataset/' + dataSet +'_graphsage_train_interactions.txt'
-                all_lpi.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_total_interactions_seq_list.txt", sep="\t", header=False, index=False)
-                train_gnn.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_graphsage_train_interactions.txt", sep="\t", header=False, index=False)
-                test_gnn.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_graphsage_test_interactions.txt", sep="\t", header=False, index=False)
-                print("The shape of all, train and test data of gnn:", all_lpi.shape, train_gnn.shape, test_gnn.shape, "\n")
+                if not os.path.exists(dataset + '_' + embedding_type + '_graphsage_dataset/'):
+                # 如果不存在，创建文件夹
+                os.makedirs(dataset + '_' + embedding_type + '_graphsage_dataset/')
+
+                # 生成所有的相互作用：RPI2241_total_interactions_seq_list.txt
+                total_interaction_df = pd.concat([train_interaction_df, test_interaction_df], axis=0)  # 所有的相互作用
+                total_interaction_df.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + '_total_interactions_seq_list.txt',
+                                            sep='\t', index=False, header=False)
+                # 获取训练集里的所有正样本
+                positive_train_interaction_df = train_gnn[train_gnn['Y'] == 1]
+
+                # 生成graphsage训练集中的所有相互作用：RPI2241_graphsage_train_interactions.txt;
+                graphsage_train_interaction_df = pd.concat([positive_train_interaction_df['RNA_aa_code'], positive_train_interaction_df['target_aa_code']], axis=1)
+                graphsage_train_interaction_df.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + '_graphsage_train_interactions.txt',
+                                                      sep='\t', index=False, header=False)
+                # print(graphsage_train_interaction_df)
+
+                # 获取训练集里的所有负样本
+                negative_train_interaction_df = train_gnn[train_gnn['Y'] == 0]
+                negative_train_interaction_df = pd.concat([negative_train_interaction_df['RNA_aa_code'], negative_train_interaction_df['target_aa_code']], axis=1)
+
+                # 生成graphsage测试集中的所有相互作用：RPI2241_graphsage_test_interactions.txt
+                graphsage_test_interaction_df = pd.concat([test_interaction_df, negative_train_interaction_df], axis=1)
+                # print(graphsage_test_interaction_df)
+                graphsage_test_interaction_df.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + '_graphsage_test_interactions.txt',
+                                                     sep='\t', index=False, header=False)
+
+            ########################################
+            ########################################
 
             
             graphsage_model_path = os.path.join(self.model_out_dir,
