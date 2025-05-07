@@ -304,6 +304,7 @@ class gkZHMolGraph():
                 all_lpi.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_total_interactions_seq_list.txt", sep="\t", header=False, index=False)
                 train_gnn.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_graphsage_train_interactions.txt", sep="\t", header=False, index=False)
                 test_gnn.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_graphsage_test_interactions.txt", sep="\t", header=False, index=False)
+                print("The shape of all, train and test data of gnn:", all_lpi.shape, train_gnn.shape, test_gnn.shape, "\n")
 
             
             graphsage_model_path = os.path.join(self.model_out_dir,
