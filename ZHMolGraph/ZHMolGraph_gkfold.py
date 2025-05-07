@@ -303,7 +303,7 @@ class gkZHMolGraph():
 
                 if not os.path.exists(dataset + '_' + embedding_type + '_graphsage_dataset/'):
                 # 如果不存在，创建文件夹
-                os.makedirs(dataset + '_' + embedding_type + '_graphsage_dataset/')
+                    os.makedirs(dataset + '_' + embedding_type + '_graphsage_dataset/')
 
                 # 生成所有的相互作用：RPI2241_total_interactions_seq_list.txt
                 total_interaction_df = pd.concat([train_interaction_df, test_interaction_df], axis=0)  # 所有的相互作用
