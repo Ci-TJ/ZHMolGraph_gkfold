@@ -273,7 +273,7 @@ class gkZHMolGraph():
     ############ Test/Validation Functions ############n
     ###################################################
     def get_benchmark_validation_ZHMolGraph_results(self, rna_embedding_length=640, protein_embedding_length=1024, dataset=None, 
-        embedding_type=None, graphsage_embedding=1, result_file="ZHMolGraph_Line.csv"):
+        embedding_type=None, graphsage_embedding=1, result_file="ZHMolGraph_Line.csv",same_split=False):
 
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -292,8 +292,20 @@ class gkZHMolGraph():
             print(20*"——")
             print(f"Run_{run_number}")
             print(20*"——")
+            #Seager: 20250507
+            if same_split:
+                train_gnn = self.train_sets[run_number] #train set for gnn, note test/train=1.5 in ZG, so change 0 to 1 in 20250506
+                test_gnn = self.test_sets[run_number] #test set for gnn
+                train_gnn = train_gnn[["RNA_aa_code", "target_aa_code"]]
+                test_gnn = test_gnn[["RNA_aa_code", "target_aa_code"]]
 
+                all_lpi = pd.concat([train_gnn, test_gnn], axis=0)
+                #dataSet + '_' + embedding_type + '_graphsage_dataset/' + dataSet +'_graphsage_train_interactions.txt'
+                all_lpi.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_total_interactions_seq_list.txt", sep="\t", header=False, index=False)
+                train_gnn.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_graphsage_train_interactions.txt", sep="\t", header=False, index=False)
+                test_gnn.to_csv(dataset + '_' + embedding_type + '_graphsage_dataset/' + dataset + "_graphsage_test_interactions.txt", sep="\t", header=False, index=False)
 
+            
             graphsage_model_path = os.path.join(self.model_out_dir,
                                                 self.sub_dir + str(run_number), "graphSage.pth") #Seager: add self.sub_dir
             if not os.path.exists(os.path.join(self.model_out_dir, self.sub_dir + str(run_number))):
